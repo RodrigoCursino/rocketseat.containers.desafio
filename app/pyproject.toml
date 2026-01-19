@@ -1,0 +1,29 @@
+[project]
+name = "desafio-rocketseat-containers"
+version = "0.1.0"
+description = "Desafio Containers Rocketseat"
+package-mode = false
+authors = [
+    {name = "RodrigoCursino",email = "rodrigoapmc@gmail.com"}
+]
+readme = "README.md"
+requires-python = ">=3.12,<4.0"
+dependencies = [
+    "fastapi (>=0.121.0,<0.122.0)",
+    "uvicorn (>=0.38.0,<0.39.0)",
+    "sqlalchemy (>=2.0.44,<3.0.0)",
+    "pydantic (>=2.12.3,<3.0.0)",
+    "pytest (>=8.4.2,<9.0.0)",
+    "pymysql (>=1.1.2,<2.0.0)",
+    "cryptography (>=46.0.3,<47.0.0)",
+    "alembic (>=1.17.1,<2.0.0)",
+    "psycopg2-binary (>=2.9.11,<3.0.0)",
+    "hvac (>=2.4.0,<3.0.0)",
+    "dotenv (>=0.9.9,<0.10.0)",
+    "python-dotenv (>=1.2.1,<2.0.0)"
+]
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"

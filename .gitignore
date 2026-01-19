@@ -1,0 +1,39 @@
+# Vault runtime secrets (NUNCA versionar)
+vault/secrets/
+vault/secrets/**
+vault/agent-alembic/secrets/
+vault/agent-fastapi/secrets/
+vault/agent-alembic/auth/
+vault/agent-fastapi/auth/
+
+# Tokens
+**/token
+**/*.token
+
+# Templates renderizados
+**/*.env
+**/database.env
+
+# Vault runtime
+vault/data/
+vault/logs/
+**/*.pid
+
+# =========================
+# Docker
+# =========================
+
+docker-compose.override.yml
+docker-compose*.copy.yml
+
+# =========================
+# Python
+# =========================
+
+__pycache__/
+*.pyc
+.venv/
+venv/
+.env
+
+docker-compose copy.yaml

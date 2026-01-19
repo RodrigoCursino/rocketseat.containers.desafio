@@ -1,0 +1,1 @@
+from src.infra.sqlalchemy.models.products import Products

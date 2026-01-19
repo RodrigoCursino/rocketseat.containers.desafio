@@ -1,0 +1,127 @@
+services:
+
+  vault:
+    image: hashicorp/vault:1.21.0
+    container_name: vault
+    restart: always
+
+    environment:
+      VAULT_ADDR: http://vault:8200
+      VAULT_DISABLE_MLOCK: "true"
+
+    ports:
+      - "8200:8200"
+
+    volumes:
+      - ./vault/data:/vault/data
+      - ./vault/config:/vault/config
+      - ./vault/policies:/vault/policies
+      - ./vault/logs:/var/log/vault
+
+    command: vault server -config=/vault/config/vault.hcl
+    
+    cap_add:
+      - IPC_LOCK
+
+    networks:
+      - desafio-rocketseat-containers
+  mysql:
+    image: mysql:8.0
+    container_name: mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: appdb
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+    networks:
+      - desafio-rocketseat-containers
+
+  # ============================
+  # Vault Agent — Alembic
+  # ============================
+  vault-agent-alembic:
+    image: hashicorp/vault:1.21.0
+    container_name: vault-agent-alembic
+    user: "100:100"
+    depends_on:
+      - vault
+    # user: "100:1000"
+    environment:
+      - SKIP_SETCAP=true # Isso impede o Vault de tentar configurar capacidades de kernel
+    command: vault agent -config=/vault/agent-alembic.hcl
+    volumes:
+      - ./vault/agent-alembic.hcl:/vault/agent-alembic.hcl:ro
+      - ./vault/agent-alembic/auth:/vault/auth:rw
+      - ./vault/templates:/vault/templates:ro
+      - ./vault/agent-alembic/secrets:/vault/secrets
+    networks:
+      - desafio-rocketseat-containers
+
+  alembic:
+    build: ./app
+    container_name: alembic
+    command: sh -c "while [ ! -f /vault/secrets/database.env ]; do sleep 1; done; alembic revision --autogenerate -m 'create tables'; alembic upgrade head"
+    volumes:
+      - ./vault/agent-alembic/secrets:/vault/secrets
+    depends_on:
+      - vault-agent-alembic
+    networks:
+      - desafio-rocketseat-containers
+
+  # ============================
+  # Vault Agent — FastAPI
+  # ============================
+  vault-agent-fastapi:
+    image: hashicorp/vault:1.21.0
+    container_name: vault-agent-fastapi
+    user: "100:100"
+    environment:
+      - SKIP_SETCAP=true # Isso impede o Vault de tentar configurar capacidades de kernel
+    depends_on:
+      - vault
+    command: vault agent -config=/vault/agent-fastapi.hcl
+    volumes:
+      - ./vault/agent-fastapi.hcl:/vault/agent-fastapi.hcl:ro
+      - ./vault/agent-fastapi/auth:/vault/auth:rw
+      - ./vault/templates:/vault/templates:ro
+      - ./vault/agent-fastapi/secrets:/vault/secrets
+    networks:
+      - desafio-rocketseat-containers
+
+
+  fastapi:
+    build: ./app
+    container_name: fastapi
+    restart: always
+    command: |
+      sh -c "
+      while [ ! -f /vault/secrets/database.env ]; do
+        echo '⏳ aguardando secrets do Vault...'
+        sleep 1
+      done
+      . /vault/secrets/database.env
+      exec uvicorn src.app:api --host 0.0.0.0 --port 3000
+      "
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./vault/agent-fastapi/secrets:/vault/secrets
+    depends_on:
+      - vault-agent-fastapi
+      - mysql
+      - alembic
+    networks:
+      - desafio-rocketseat-containers
+
+volumes:
+  mysql-data:
+  vault-secrets-fastapi:
+  vault-secrets-alembic:
+
+networks:
+  desafio-rocketseat-containers:
+    name: desafio-rocketseat-containers
+    driver: bridge

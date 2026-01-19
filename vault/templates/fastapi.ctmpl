@@ -1,0 +1,9 @@
+{{- with secret "database/creds/fastapi-role" -}}
+DB_USER={{ .Data.username }}
+DB_PASSWORD={{ .Data.password }}
+DB_HOST=mysql
+DB_PORT=3306
+DB_NAME=appdb
+
+DATABASE_URL="mysql+pymysql://{{ .Data.username }}:{{ .Data.password }}@mysql:3306/appdb"
+{{- end }}
