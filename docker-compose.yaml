@@ -25,7 +25,7 @@ services:
 
     networks:
       - desafio-rocketseat-containers
-      
+
   mysql:
     image: mysql:8.0
     container_name: mysql
@@ -49,7 +49,6 @@ services:
     user: "100:100"
     depends_on:
       - vault
-    # user: "100:1000"
     environment:
       - SKIP_SETCAP=true # Isso impede o Vault de tentar configurar capacidades de kernel
     command: vault agent -config=/vault/agent-alembic.hcl
